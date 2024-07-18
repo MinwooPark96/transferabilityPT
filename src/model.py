@@ -40,6 +40,11 @@ class MLMPromptForEval(nn.Module):
         
         freeze_params(self.model)
         
+        bert_map = {'positive' : 3893,'negative' : 4997,'yes' : 2748,'neutral' : 8699,'no' : 2053,'true' : 2995,'false' : 6270}
+        roberta_map = {'positive' : 22173,'negative' : 2430,'yes' : 4420,'neutral' : 7974,'no' : 117,'true' : 1528,'false' : 3950}
+        
+        self.map = bert_map if 'bert' in model_name else roberta_map
+        
     def get_soft_prompt(self):
         """Return the soft prompt."""
         return self.soft_prompt
@@ -90,6 +95,7 @@ class MLMPromptForEval(nn.Module):
         logits = model_outputs.logits
         mask_logits = logits[:,0]
 
+            
         """
         [minwoo] setting of https://aclanthology.org/2022.naacl-main.290.pdf
             TODO : 
@@ -102,27 +108,31 @@ class MLMPromptForEval(nn.Module):
             IMDB: positive, negative 
             SST-2: positive, negative
                 Bert : 3893, 4997
+                Roberta : 22173, 2430
 
         NLI (Natural Language Inference)**: 
             MNLI: yes, neutral, no
                 Bert : 2748, 8699, 2053
+                Roberta : 4420, 7974, 117
     
     
         PI (Paraphrase Identification)**:
             QQP: true, false
             MRPC: true, false
                 Bert : 2995, 6270
+                Roberta : 1528, 3950
         
         """
-
-        # [minwoo] score.shape = (batch, Class_num)         
-        #   TODO -> https://github.com/DengBoCong/prompt-tuning/blob/master/core/prompt_bert.py#L107 를 참고하여 if else 제거
+        
         if self.finetuning_task in ['sst2', 'imdb']:
-            score = torch.cat([mask_logits[:,3893].unsqueeze(1), mask_logits[:,4997].unsqueeze(1)],dim = 1)
+            #score = torch.cat([mask_logits[:,3893].unsqueeze(1), mask_logits[:,4997].unsqueeze(1)],dim = 1)
+            score = torch.cat([mask_logits[:,self.map['positive']].unsqueeze(1), mask_logits[:,self.map['negative']].unsqueeze(1)],dim = 1)
         elif self.finetuning_task in ['mnli']:
-            score = torch.cat([mask_logits[:,2748].unsqueeze(1), mask_logits[:,8699].unsqueeze(1), mask_logits[:,2053].unsqueeze(1)],dim = 1)
+            #score = torch.cat([mask_logits[:,2748].unsqueeze(1), mask_logits[:,8699].unsqueeze(1), mask_logits[:,2053].unsqueeze(1)],dim = 1)
+            score = torch.cat([mask_logits[:,self.map['yes']].unsqueeze(1), mask_logits[:,self.map['neutral']].unsqueeze(1), mask_logits[:,self.map['no']].unsqueeze(1)],dim = 1)
         elif self.finetuning_task in ['qqp', 'mrpc']:
-            score = torch.cat([mask_logits[:,2995].unsqueeze(1), mask_logits[:,6270].unsqueeze(1)], dim = 1)
+            # score = torch.cat([mask_logits[:,2995].unsqueeze(1), mask_logits[:,6270].unsqueeze(1)], dim = 1)
+            score = torch.cat([mask_logits[:,self.map['true']].unsqueeze(1), mask_logits[:,self.map['false']].unsqueeze(1)], dim = 1)
         else :
             NotImplementedError(f"[minwoo] {self.finetuning_task} is not supported yet...")
         

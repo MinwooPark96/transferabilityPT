@@ -50,9 +50,9 @@ class Evaluator:
              soft_prompt: Optional[torch.Tensor] = None):
 
         fix_seed(self.seed)
-        
+
         if soft_prompt is not None:
-            self.model.set_soft_prompt(soft_prompt.to(self.device)) 
+            self.model.set_soft_prompt(soft_prompt.to(self.device))
             
         elif self.prompt_filename is not None:
             self.model.set_soft_prompt(load_soft_prompt_from(self.prompt_filename).to(self.device))

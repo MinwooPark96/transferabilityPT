@@ -9,8 +9,7 @@ from .eval import Evaluator
 class Rel2abs_Decoder:
     def __init__(self, 
                  args, 
-                 logger, 
-                 sourece_soft_prompt, 
+                 source_soft_prompt, 
                  source_anchor_embedding, 
                  target_anchor_embedding, 
                  target_statistic):
@@ -28,23 +27,21 @@ class Rel2abs_Decoder:
         self.learning_rate = args.lr
         
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
         self.evaluator = Evaluator(
             model_name = args.target_model_name,
             dataset_name = args.dataset_name,
             device = self.device,
             prompt_filename = args.prompt_filename)
         
-        
-
-        sourece_soft_prompt = sourece_soft_prompt.to(self.device)
+        self.source_soft_prompt = source_soft_prompt.to(self.device)
         self.source_anchor_embedding = source_anchor_embedding.to(self.device)
         self.target_anchor_embedding = target_anchor_embedding.to(self.device)
         
         self.mean = target_statistic[0].to(self.device)
         self.std = target_statistic[1].to(self.device)
 
-
-        self.source_relative = self.proj2rel(sourece_soft_prompt, self.source_anchor_embedding)
+        self.source_relative = self.proj2rel(self.source_soft_prompt, self.source_anchor_embedding)
 
         if self.topk > 0:
             self.source_relative, self.mask = self.zero_except_topk(self.source_relative)
@@ -107,11 +104,11 @@ class Rel2abs_Decoder:
 
     # def eval(self, x):
     #     if self.target_abss == None:
-    #         raise AssertionError('No sourece_soft_prompt abs embedding defined?')
+    #         raise AssertionError('No source_soft_prompt abs embedding defined?')
     #     cosine = nn.functional.cosine_similarity(x, self.target_abss, dim=-1)
     #     return torch.mean(cosine).item()
     
-    def search(self):
+    def search(self) -> torch.Tensor:
         optimizer = optim.Adam([self.target_soft_prompt], lr=self.learning_rate)
 
         best_precision = -1
@@ -119,6 +116,7 @@ class Rel2abs_Decoder:
 
         pbar = tqdm(range(self.budget))
         for i in pbar:
+            
             regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
             target_relative = self.proj2rel(regularized_target_soft_prompt, self.target_anchor_embedding)
             
@@ -131,23 +129,24 @@ class Rel2abs_Decoder:
             optimizer.step()
             optimizer.zero_grad()
             
-            if (i+1) % 1000 == 0:
+            if (i+1) % 1000 == 0 :
                 with torch.no_grad():
-                    current_target_soft_prompt = regularized_target_soft_prompt.detach()#.cpu()#.numpy()
+                    current_target_soft_prompt = regularized_target_soft_prompt.detach()
                     precision = self.evaluator.eval(soft_prompt = current_target_soft_prompt)['accuracy']
                 
                 if precision > best_precision:
                     best_target_soft_prompt = current_target_soft_prompt
                     best_precision = precision
-                    # self.logger.info('Get best precision: %.4f at step %d! loss: %.4f' % (best_precision, i+1, loss.item()))
                     print('Get best precision: %.4f at step %d! loss: %.4f' % (best_precision, i+1, loss.item()))
             
             pbar.set_description('best precision: %.4f, loss: %.4f' % (best_precision, loss.item()))
 
         with torch.no_grad():
+            if best_target_soft_prompt is None:
+                best_target_soft_prompt = regularized_target_soft_prompt.detach()
+            
             test_precision = self.evaluator.eval(soft_prompt = best_target_soft_prompt)['accuracy']
-        
-        # self.logger.info('Test precision: %.4f' % test_precision)
+
         print('Test precision: %.4f' % test_precision)
 
         return best_target_soft_prompt

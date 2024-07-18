@@ -34,7 +34,6 @@ def select_random_samples(matrix: torch.Tensor,
 def get_absolute_anchors(source_model_name: str,
                          target_model_name: str,
                          num_anchor = 1024,
-                         common_vocab = None,
                          all_anchors = False):
     """
     [minwoo]
@@ -44,11 +43,12 @@ def get_absolute_anchors(source_model_name: str,
             Name or path of the target model.
         num_anchor:
             Number of anchor points to select.
-        common_vocab: 
+        common_vocab: [minwoo] remove.
             Path to a file containing common vocabulary (optional).
         all_anchors:
             Boolean to decide whether to use all anchor points or a subset.
     """
+    
     source_model = AutoModel.from_pretrained(source_model_name)
     target_model = AutoModel.from_pretrained(target_model_name)
     
@@ -62,10 +62,11 @@ def get_absolute_anchors(source_model_name: str,
     target_embedding_layer = target_model.get_input_embeddings().weight.data.detach().clone()#.cpu()
     
     
-    if common_vocab != None:
-        with open(common_vocab, 'r') as f:
-            lines = f.readlines()
-            filtered_vocab = [x.strip() for x in lines]
+    # if common_vocab != None:
+    #     with open(common_vocab, 'r') as f:
+    if False:
+        lines = f.readlines()
+        filtered_vocab = [x.strip() for x in lines]
 
     else:
         source_vocab, _ = build_vocab(source_tokenizer)
@@ -104,12 +105,12 @@ def get_absolute_anchors(source_model_name: str,
     print('Number of filtered shared tokens %d' % len(target_filtered_indices))
     
     # [minwoo]TODO 원본 layer 에서의 mean,std 를 구하네? 왜지?
-    std = torch.std(target_embedding_layer.reshape(-1))
     mean = torch.mean(target_embedding_layer.reshape(-1)) 
-
+    std = torch.std(target_embedding_layer.reshape(-1))
+    
     if all_anchors:
         source_anchor_embedding = select_random_samples(source_embedding_layer, np.array(source_filtered_indices))
-        target_anchor_embedding = select_random_samples(target_embedding_layer,np.array(target_filtered_indices))
+        target_anchor_embedding = select_random_samples(target_embedding_layer, np.array(target_filtered_indices))
         
     else:
         # source_filtered_indices 에서 num_anchor 만큼 랜덤하게 선택
