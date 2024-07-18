@@ -1,0 +1,8 @@
+datasets
+transformers
+scipy
+scikit-learn
+accelerate
+evaluate
+wandb
+tqdm
