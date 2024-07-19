@@ -40,10 +40,18 @@ class MLMPromptForEval(nn.Module):
         
         freeze_params(self.model)
         
-        bert_map = {'positive' : 3893,'negative' : 4997,'yes' : 2748,'neutral' : 8699,'no' : 2053,'true' : 2995,'false' : 6270}
+        bert_uncased_map = {'positive' : 3893,'negative' : 4997,'yes' : 2748,'neutral' : 8699,'no' : 2053,'true' : 2995,'false' : 6270}
+        bert_cased_map = {'positive' : 3112,'negative' : 4366, 'yes' : 4208,'neutral' : 8795,'no' : 1185,'true' : 2276,'false' : 6014}
         roberta_map = {'positive' : 22173,'negative' : 2430,'yes' : 4420,'neutral' : 7974,'no' : 117,'true' : 1528,'false' : 3950}
         
-        self.map = bert_map if 'bert' in model_name else roberta_map
+        if self.model_name in ['bert-base-uncased','bert-large-uncased']:
+            self.map = bert_uncased_map
+        elif self.model_name in ['bert-base-cased','bert-large-cased']:
+            self.map = bert_cased_map
+        elif self.model_name in ['roberta-base','roberta-large']:
+            self.map = roberta_map
+        else:
+            raise NotImplementedError(f"[minwoo] word_map for {self.model_name} is not supported yet.")
         
     def get_soft_prompt(self):
         """Return the soft prompt."""
