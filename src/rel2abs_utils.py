@@ -13,7 +13,7 @@ def vocab_cleaning(vocab):
     return vocab
 
 def select_random_samples(matrix: torch.Tensor,
-                          indices: np.ndarray):
+                          indices: np.ndarray) -> torch.Tensor:
     """
     [minwoo]
     args:
@@ -91,6 +91,7 @@ def get_absolute_anchors(source_model_name: str,
             continue
         
         target_tokens = target_tokenizer.tokenize(' ' + word)
+        
         if (len(target_tokens) == 1) and (target_tokens[0] != target_unknwon_token_id):
             target_index = target_tokenizer.convert_tokens_to_ids(target_tokens)[0]
         else:

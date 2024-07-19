@@ -58,6 +58,9 @@ class MLMPromptForEval(nn.Module):
         self.soft_prompt = soft_prompt
         self.pre_seq_len = soft_prompt.shape[0]
         
+        # [minwoo] freeze the soft prompt
+        self.soft_prompt.requires_grad = False
+        
         assert self.hidden_size == self.soft_prompt.shape[1]
         
         # logger.info(f"Set the soft prompt with shape {self.soft_prompt.shape}")

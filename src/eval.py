@@ -53,6 +53,7 @@ class Evaluator:
 
         if soft_prompt is not None:
             self.model.set_soft_prompt(soft_prompt.to(self.device))
+            print('Set soft prompt from input!')
             
         elif self.prompt_filename is not None:
             self.model.set_soft_prompt(load_soft_prompt_from(self.prompt_filename).to(self.device))
@@ -65,6 +66,7 @@ class Evaluator:
         eval_dataloader = DataLoader(eval_dataset, 
                                      collate_fn=self.dataset.data_collator, 
                                      batch_size = self.per_device_eval_batch_size)
+        
         metric = self.dataset.metric
 
         self.model.eval()
@@ -78,7 +80,7 @@ class Evaluator:
             predictions = torch.argmax(outputs, dim=1)
             predictions = predictions
             references = batch["labels"]
-            
+            # print(predictions)
             metric.add_batch(
                 predictions=predictions,
                 references=references,

@@ -47,7 +47,6 @@ class Rel2abs_Decoder:
             self.source_relative, self.mask = self.zero_except_topk(self.source_relative)
 
         self.target_soft_prompt = torch.empty((self.source_relative.shape[0], target_anchor_embedding.shape[1])).to(self.device) # (pre_seq_len, target_hidden_size)
-        
         self.target_soft_prompt.requires_grad = True
         torch.nn.init.xavier_normal_(self.target_soft_prompt)
         
@@ -79,7 +78,7 @@ class Rel2abs_Decoder:
         masked_tensor = tensor_relative * mask
         return masked_tensor, mask
     
-    def regularize_tensor(self, tensor):
+    def regularize_tensor(self, tensor: torch.Tensor):
         
         current_mean = torch.mean(tensor).to(self.device)
         current_std = torch.std(tensor).to(self.device)
@@ -116,9 +115,19 @@ class Rel2abs_Decoder:
 
         pbar = tqdm(range(self.budget))
         for i in pbar:
+            """
+            [minwoo]
+                print(self.source_anchor_embedding) -> 변하지않음
+                print(self.source_relative) -> 변하지않음
+                print(self.source_soft_prompt) -> 변하지않음
+            """
             
-            regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
-            target_relative = self.proj2rel(regularized_target_soft_prompt, self.target_anchor_embedding)
+            # [minwoo] 기존코드
+            # regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
+            # target_relative = self.proj2rel(regularized_target_soft_prompt, self.target_anchor_embedding)
+            
+            # [minwoo] 논문대로라면 regularize 하기 전에 projection 인 것 같은데?
+            target_relative = self.proj2rel(self.target_soft_prompt, self.target_anchor_embedding)
             
             if self.topk > 0:
                 target_relative = target_relative * self.mask
@@ -129,22 +138,25 @@ class Rel2abs_Decoder:
             optimizer.step()
             optimizer.zero_grad()
             
-            if (i+1) % 1000 == 0 :
+            if (i+1) % 10000 == 0 :
+                # regularized_target_soft_prompt = self.target_soft_prompt
                 with torch.no_grad():
+                    regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
                     current_target_soft_prompt = regularized_target_soft_prompt.detach()
                     precision = self.evaluator.eval(soft_prompt = current_target_soft_prompt)['accuracy']
                 
-                if precision > best_precision:
-                    best_target_soft_prompt = current_target_soft_prompt
-                    best_precision = precision
-                    print('Get best precision: %.4f at step %d! loss: %.4f' % (best_precision, i+1, loss.item()))
+                    if precision > best_precision:
+                        best_target_soft_prompt = current_target_soft_prompt
+                        best_precision = precision
+                        print('Get best precision: %.4f at step %d! loss: %.8f' % (best_precision, i+1, loss.item()))
             
-            pbar.set_description('best precision: %.4f, loss: %.4f' % (best_precision, loss.item()))
+            pbar.set_description('best precision: %.4f, loss: %.8f' % (best_precision, loss.item()))
 
         with torch.no_grad():
             if best_target_soft_prompt is None:
                 best_target_soft_prompt = regularized_target_soft_prompt.detach()
             
+
             test_precision = self.evaluator.eval(soft_prompt = best_target_soft_prompt)['accuracy']
 
         print('Test precision: %.4f' % test_precision)

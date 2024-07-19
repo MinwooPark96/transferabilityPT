@@ -15,7 +15,7 @@ def parse_args() -> argparse.Namespace:
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--prompt_filename', type=str, default='./output/bert-base-uncased/sst2/epoch_100_prompt.bin')
+    parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-uncased_sst2_5.bin')
     parser.add_argument('--dataset_name', type=str, default='sst2')
     parser.add_argument('--pad_to_max_length', type=bool, default=True)
     parser.add_argument('--do_eval', type=bool, default=True)
