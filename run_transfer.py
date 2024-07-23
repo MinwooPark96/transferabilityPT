@@ -43,10 +43,11 @@ def transfer(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source_model_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--target_model_name', type=str, default='roberta-large')
+    parser.add_argument('--target_model_name', type=str, default='bert-base-cased')
     # parser.add_argument('--target_model_name', type=str, default='bert-base-uncased')
     
     parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-uncased_sst2_5.bin')
+    # parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-cased_sst2_5.bin')
     parser.add_argument('--transfered_prompt_filename', type=str, default='transfered_prompt.pt')
     
     parser.add_argument('--num_anchor', type=int, default=8192)
@@ -58,8 +59,8 @@ if __name__ == '__main__':
     # args for validation
     parser.add_argument('--dataset_name', type=str, default='sst2')
     parser.add_argument('--absolute', action='store_true') # [minwoo] topk masking 시에 절대값을 기준으로 masking 할지, 아닐지 여부.
-    parser.add_argument('--topk', type=int, default=0)
-    parser.add_argument('--budget', type=int, default=100000)
+    parser.add_argument('--topk', type=int, default=8192)
+    parser.add_argument('--budget', type=int, default=30000)
     parser.add_argument('--lr', type=float, default=1e-3)
     
     args = parser.parse_args()

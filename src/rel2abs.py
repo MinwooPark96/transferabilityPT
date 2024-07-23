@@ -138,7 +138,7 @@ class Rel2abs_Decoder:
             optimizer.step()
             optimizer.zero_grad()
             
-            if (i+1) % 10000 == 0 :
+            if (i+1) % 5000 == 0 :
                 # regularized_target_soft_prompt = self.target_soft_prompt
                 with torch.no_grad():
                     regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)

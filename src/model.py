@@ -40,18 +40,19 @@ class MLMPromptForEval(nn.Module):
         
         freeze_params(self.model)
         
+        
         bert_uncased_map = {'positive' : 3893,'negative' : 4997,'yes' : 2748,'neutral' : 8699,'no' : 2053,'true' : 2995,'false' : 6270}
         bert_cased_map = {'positive' : 3112,'negative' : 4366, 'yes' : 4208,'neutral' : 8795,'no' : 1185,'true' : 2276,'false' : 6014}
         roberta_map = {'positive' : 22173,'negative' : 2430,'yes' : 4420,'neutral' : 7974,'no' : 117,'true' : 1528,'false' : 3950}
         
-        if self.model_name in ['bert-base-uncased','bert-large-uncased']:
+        if model_name in ['bert-base-uncased','bert-large-uncased']:
             self.map = bert_uncased_map
-        elif self.model_name in ['bert-base-cased','bert-large-cased']:
+        elif model_name in ['bert-base-cased','bert-large-cased']:
             self.map = bert_cased_map
-        elif self.model_name in ['roberta-base','roberta-large']:
+        elif model_name in ['roberta-base','roberta-large']:
             self.map = roberta_map
         else:
-            raise NotImplementedError(f"[minwoo] word_map for {self.model_name} is not supported yet.")
+            raise NotImplementedError(f"[minwoo] word_map for {model_name} is not supported yet.")
         
     def get_soft_prompt(self):
         """Return the soft prompt."""
@@ -104,36 +105,8 @@ class MLMPromptForEval(nn.Module):
         
         # [minwoo] logits.shape = (batch, total_length, vocab_size)
         logits = model_outputs.logits
-        mask_logits = logits[:,0]
+        mask_logits = logits[:,0] # [minwoo] mask_logits.shape = (batch, vocab_size)
 
-            
-        """
-        [minwoo] setting of https://aclanthology.org/2022.naacl-main.290.pdf
-            TODO : 
-                I think it is better to utilize 
-                    1. Manual Template? or Pattern?. 
-                    2. Verbalizer?
-                        see PET : https://arxiv.org/abs/2001.07676
-                        
-        SA (Sentiment Analysis)
-            IMDB: positive, negative 
-            SST-2: positive, negative
-                Bert : 3893, 4997
-                Roberta : 22173, 2430
-
-        NLI (Natural Language Inference)**: 
-            MNLI: yes, neutral, no
-                Bert : 2748, 8699, 2053
-                Roberta : 4420, 7974, 117
-    
-    
-        PI (Paraphrase Identification)**:
-            QQP: true, false
-            MRPC: true, false
-                Bert : 2995, 6270
-                Roberta : 1528, 3950
-        
-        """
         
         if self.finetuning_task in ['sst2', 'imdb']:
             #score = torch.cat([mask_logits[:,3893].unsqueeze(1), mask_logits[:,4997].unsqueeze(1)],dim = 1)
