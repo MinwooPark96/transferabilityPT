@@ -1,6 +1,7 @@
 from transformers import AutoModel, AutoTokenizer
 import numpy as np
 import torch
+from typing import Optional
 
 def build_vocab(tokenizer) -> tuple[list,dict[int,str]]:
     vocab = list(tokenizer.get_vocab())
@@ -33,8 +34,9 @@ def select_random_samples(matrix: torch.Tensor,
 
 def get_absolute_anchors(source_model_name: str,
                          target_model_name: str,
-                         num_anchor = 1024,
-                         all_anchors = False):
+                         num_anchor: int,
+                         all_anchors = False,
+                         common_vocab: Optional[str] = None) -> tuple[torch.Tensor, torch.Tensor, tuple[float,float]]:
     """
     [minwoo]
         source_model_name:
@@ -62,11 +64,12 @@ def get_absolute_anchors(source_model_name: str,
     target_embedding_layer = target_model.get_input_embeddings().weight.data.detach().clone()#.cpu()
     
     
-    # if common_vocab != None:
-    #     with open(common_vocab, 'r') as f:
-    if False:
-        lines = f.readlines()
-        filtered_vocab = [x.strip() for x in lines]
+    if common_vocab != None:
+        with open(common_vocab, 'r') as f:
+            lines = f.readlines()
+            filtered_vocab = list(set([x.strip() for x in lines]))
+        num_anchor = len(filtered_vocab)
+        print(f'load vocab from file:{common_vocab}, vocabs:{len(filtered_vocab)}')
 
     else:
         source_vocab, _ = build_vocab(source_tokenizer)
@@ -102,6 +105,9 @@ def get_absolute_anchors(source_model_name: str,
         target_filtered_indices.append(target_index)
 
     assert len(source_filtered_indices) == len(target_filtered_indices)
+    # # [minwoo] txt 불러올때 
+    # if common_vocab is not None:
+    #     num_anchor = len(target_filtered_indices)
     
     print('Number of filtered shared tokens %d' % len(target_filtered_indices))
     

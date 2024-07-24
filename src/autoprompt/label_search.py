@@ -122,9 +122,8 @@ def main(args):
                 model(**model_inputs)
             
             embeddings = embedding_storage.get()
-            predict_embeddings = embeddings.masked_select(predict_mask.unsqueeze(-1)).view(embeddings.size(0), -1)
-            # print(predict_embeddings.shape)
-            logits = projection(predict_embeddings)
+            predict_embeddings = embeddings.masked_select(predict_mask.unsqueeze(-1)).view(embeddings.size(0), -1)# batch_size, hidden_size
+            logits = projection(predict_embeddings)# batch_size, num_labels
             loss = F.cross_entropy(logits, labels.squeeze(-1))
             loss.backward()
             optimizer.step()

@@ -27,7 +27,9 @@ def transfer(args):
         source_model_name = args.source_model_name, 
         target_model_name = args.target_model_name, 
         num_anchor = args.num_anchor, 
-        all_anchors = args.all_anchors)
+        all_anchors = args.all_anchors,
+        common_vocab = args.common_vocab
+        )
 
     # [minwoo] decoder inititalization
     decoder = Rel2abs_Decoder(args, 
@@ -43,8 +45,8 @@ def transfer(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source_model_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--target_model_name', type=str, default='bert-base-cased')
-    # parser.add_argument('--target_model_name', type=str, default='bert-base-uncased')
+    # parser.add_argument('--target_model_name', type=str, default='roberta-large')
+    parser.add_argument('--target_model_name', type=str, default='bert-base-uncased')
     
     parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-uncased_sst2_5.bin')
     # parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-cased_sst2_5.bin')
@@ -52,6 +54,7 @@ if __name__ == '__main__':
     
     parser.add_argument('--num_anchor', type=int, default=8192)
     parser.add_argument('--all_anchors', action='store_true')
+    parser.add_argument('--common_vocab', type=str, default=None)
     
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--log_path', type=str, default='./logs.txt')
@@ -60,8 +63,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_name', type=str, default='sst2')
     parser.add_argument('--absolute', action='store_true') # [minwoo] topk masking 시에 절대값을 기준으로 masking 할지, 아닐지 여부.
     parser.add_argument('--topk', type=int, default=8192)
-    parser.add_argument('--budget', type=int, default=30000)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--budget', type=int, default=10000)
+    parser.add_argument('--lr', type=float, default=1e-2)
     
     args = parser.parse_args()
 

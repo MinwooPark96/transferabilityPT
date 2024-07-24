@@ -19,6 +19,8 @@ from datasets.load import load_dataset
 import evaluate
 from utils import fix_seed, get_params_dict, print_params_with_requires_grad
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
 """
 [minwoo] source from AutoPrompt paper.
 """
@@ -230,7 +232,7 @@ def main(args):
         model = model, 
         config = config, 
         tokenizer = tokenizer, 
-        pre_seq_len = 5).to(device)
+        pre_seq_len = args.pre_seq_len).to(device)
     
     final_embeddings = get_final_embeddings(model)
     embedding_storage = Hooker(final_embeddings) # [minwoo] Hook the final_embeddings
@@ -256,7 +258,7 @@ def main(args):
     scores = F.softmax(scores, dim=0)
     
     print('Training')
-    for i in range(args.iters):
+    for iter in range(args.iters):
         pbar = tqdm(train_dataloader)
         for step, batch in enumerate(pbar):
             optimizer.zero_grad()
@@ -291,7 +293,7 @@ def main(args):
             print(f"Top k for class {dataset.id2label[i]}: {', '.join(decoded)}")
             
             # [minwoo] Save the words to a txt file
-            with open(f'./top_k_words_{dataset.id2label[i]}.txt', 'w') as f:
+            with open(f'./common_vocabs/top_k_words_{dataset.id2label[i]}_{iter}epoch_{args.lr}lr_{args.pre_seq_len}psl.txt', 'w') as f:
                 f.write('\n'.join(decoded))
                 
 
@@ -306,11 +308,13 @@ if __name__ == '__main__':
     parser.add_argument('--cache_dir', type=str, default=None)
     parser.add_argument('--overwrite_cache', type=bool, default=False)
     
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--iters', type=int, default=100,
+    parser.add_argument('--lr', type=float, default=3e-4)
+    parser.add_argument('--iters', type=int, default=50,
                         help='Number of iterations to run trigger search algorithm')
-    parser.add_argument('--k', type=int, default=100)
+    parser.add_argument('--k', type=int, default=50)
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--pre_seq_len', type=int, default=0) # 0 means only prepend mask token sorely.
+    
     
     args = parser.parse_args()
     main(args)
