@@ -43,13 +43,14 @@ def transfer(args):
     # save_soft_prompt(args, x)
     
 if __name__ == '__main__':
+    # python run_transfer.py --common_vocab ./src/common_vocabs/vocab.txt --all_anchors
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source_model_name', type=str, default='bert-base-uncased')
-    # parser.add_argument('--target_model_name', type=str, default='roberta-large')
-    parser.add_argument('--target_model_name', type=str, default='bert-base-uncased')
+    parser.add_argument('--source_model_name', type=str, default='bert-base-cased')
+    parser.add_argument('--target_model_name', type=str, default='roberta-large')
+    # parser.add_argument('--target_model_name', type=str, default='bert-base-uncased')
     
-    parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-uncased_sst2_5.bin')
-    # parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-cased_sst2_5.bin')
+    # parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-uncased_sst2_5.bin')
+    parser.add_argument('--prompt_filename', type=str, default='./prompts/100_bert-base-cased_sst2_5.bin')
     parser.add_argument('--transfered_prompt_filename', type=str, default='transfered_prompt.pt')
     
     parser.add_argument('--num_anchor', type=int, default=8192)
