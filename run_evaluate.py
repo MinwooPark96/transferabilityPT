@@ -4,9 +4,6 @@ import argparse
 from tqdm import tqdm
 from typing import Optional
 
-from src.utils import load_soft_prompt_from, fix_seed
-from src.glue_dataset import GlueDatasetForEval
-from src.model import MLMPromptForEval
 from src.eval import Evaluator
 
 # [minwoo] source from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue_no_trainer.py#L507C4-L507C5

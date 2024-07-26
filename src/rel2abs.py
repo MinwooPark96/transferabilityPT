@@ -123,11 +123,11 @@ class Rel2abs_Decoder:
             """
             
             # [minwoo] 기존코드
-            # regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
-            # target_relative = self.proj2rel(regularized_target_soft_prompt, self.target_anchor_embedding)
+            regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
+            target_relative = self.proj2rel(regularized_target_soft_prompt, self.target_anchor_embedding)
             
             # [minwoo] 논문대로라면 regularize 하기 전에 projection 인 것 같은데?
-            target_relative = self.proj2rel(self.target_soft_prompt, self.target_anchor_embedding)
+            # target_relative = self.proj2rel(self.target_soft_prompt, self.target_anchor_embedding)
             
             if self.topk > 0:
                 target_relative = target_relative * self.mask
@@ -139,10 +139,11 @@ class Rel2abs_Decoder:
             optimizer.zero_grad()
             
             if (i+1) % 1000 == 0 :
-                # regularized_target_soft_prompt = self.target_soft_prompt
                 with torch.no_grad():
-                    regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt)
-                    current_target_soft_prompt = regularized_target_soft_prompt.detach()
+                    # regularized_target_soft_prompt = self.regularize_tensor(self.target_soft_prompt) # 민우
+                    
+                    current_target_soft_prompt = regularized_target_soft_prompt.detach()#논문
+                    
                     precision = self.evaluator.eval(soft_prompt = current_target_soft_prompt)['accuracy']
                 
                     if precision > best_precision:
