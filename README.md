@@ -9,10 +9,10 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-#### Generate Soft Prompt for Target PLM
+#### Transfer
 
 ```python
 python run_transfer.py
 ```
 
-#### Reference
+
